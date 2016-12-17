@@ -11,6 +11,8 @@ import (
 	"io"
 	"github.com/golang/glog"
 	"github.com/bluele/gcache"
+	"path/filepath"
+	"os"
 )
 
 // Cache is an implementation of httpcache.Cache that supplements the in-memory map with persistent storage
@@ -57,6 +59,20 @@ func keyToFilename(key string) string {
 	return s
 }
 
+func loadKeysFromDisk(basePath string, kc gcache.Cache) {
+	err := filepath.Walk(basePath, func(path string, f os.FileInfo, err error) error {
+		if err ==nil && !f.IsDir() {
+			kc.Set(filepath.Base(path),struct{}{})
+		}
+		return err
+	})
+
+	if err != nil {
+		glog.Errorf("Error loading keys from disk: %v,",err)
+	}
+	glog.Infof("loaded keys from disk: %d",kc.Len())
+}
+
 // New returns a new Cache that will store files in basePath
 func New(basePath string) *Cache {
 	d := diskv.New(diskv.Options{
@@ -67,6 +83,9 @@ func New(basePath string) *Cache {
 		glog.Infof("evicted key: %v", key)
 		d.Erase(key.(string))
 	}).Build()
+
+
+	loadKeysFromDisk(basePath,kc)
 
 	return &Cache{
 		d: d,
@@ -81,6 +100,9 @@ func NewWithDiskv(d *diskv.Diskv) *Cache {
 		glog.Infof("evicted key: %v", key)
 		d.Erase(key.(string))
 	}).Build()
+
+
+	loadKeysFromDisk(d.BasePath,kc)
 
 	return &Cache{
 		d: d,
