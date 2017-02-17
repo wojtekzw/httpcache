@@ -54,8 +54,6 @@ func keyToFilename(key string) string {
 	h := md5.New()
 	io.WriteString(h, key)
 	s := hex.EncodeToString(h.Sum(nil))
-
-	glog.Infof("HTTPCache::keyToFilename: key: %s, filename: %s",key,s)
 	return s
 }
 
@@ -80,7 +78,6 @@ func New(basePath string) *Cache {
 		CacheSizeMax: 100 * 1024 * 1024, // 100MB
 	})
 	kc := gcache.New(20000).LRU().EvictedFunc(func(key, value interface{}) {
-		glog.Infof("evicted key: %v", key)
 		d.Erase(key.(string))
 	}).Build()
 
@@ -97,7 +94,6 @@ func New(basePath string) *Cache {
 // storage.
 func NewWithDiskv(d *diskv.Diskv) *Cache {
 	kc := gcache.New(20000).LRU().EvictedFunc(func(key, value interface{}) {
-		glog.Infof("evicted key: %v", key)
 		d.Erase(key.(string))
 	}).Build()
 
