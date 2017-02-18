@@ -77,7 +77,7 @@ func New(basePath string) *Cache {
 		BasePath:     basePath,
 		CacheSizeMax: 100 * 1024 * 1024, // 100MB
 	})
-	kc := gcache.New(20000).LRU().EvictedFunc(func(key, value interface{}) {
+	kc := gcache.New(20000).ARC().EvictedFunc(func(key, value interface{}) {
 		d.Erase(key.(string))
 	}).Build()
 
@@ -93,7 +93,7 @@ func New(basePath string) *Cache {
 // NewWithDiskv returns a new Cache using the provided Diskv as underlying
 // storage.
 func NewWithDiskv(d *diskv.Diskv) *Cache {
-	kc := gcache.New(20000).LRU().EvictedFunc(func(key, value interface{}) {
+	kc := gcache.New(20000).ARC().EvictedFunc(func(key, value interface{}) {
 		d.Erase(key.(string))
 	}).Build()
 
